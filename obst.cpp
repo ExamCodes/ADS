@@ -1,69 +1,112 @@
-#include <iostream>
-#include <vector>
-#include <limits>
-
+#include <bits/stdc++.h>
+#include <string>
 using namespace std;
-void optimalBST(const std::vector<int>& keys, const std::vector<double>& p, const std::vector<double>& q) {
-    int n = keys.size();
+
+
+int sum(int freq[], int i, int j);
+std::string intToString(int value) {
+    std::stringstream ss;
+    ss << value;
+    return ss.str();
+}
+
+int optimalSearchTree(vector<int>& keys, vector<int>& freq, int n, vector<vector<int> >& root) 
+{ 
+	  int cost[n][n];
 
     
-    vector<vector<double>> cost(n + 1, vector<double>(n + 1, 0));
-    vector<vector<int>> root(n + 1, vector<int>(n, 0));
-    vector<vector<double>> w(n + 1, vector<double>(n + 1, 0));
+    root.assign(n, vector<int>(n, -1));
 
     
-    for (int i = 0; i <= n; ++i) {
-        cost[i][i] = q[i];
-        w[i][i] = q[i];
+    for (int i = 0; i < n; i++) {
+        cost[i][i] = freq[i];
+        root[i][i] = i; 
     }
 
-    
-    for (int length = 1; length <= n; ++length) {
-        for (int i = 0; i <= n - length; ++i) {
-            int j = i + length;
-            w[i][j] = w[i][j - 1] + p[j - 1] + q[j];
+
+    for (int L = 2; L <= n; L++) {
+        
+        for (int i = 0; i <= n - L; i++) {
+            
+            int j = i + L - 1;
+            cost[i][j] = INT_MAX;
+            int off_set_sum = sum(freq.data(), i, j);
 
             
-            cost[i][j] = std::numeric_limits<double>::infinity();
+            for (int r = i; r <= j; r++) {
+                
+                int c = ((r > i) ? cost[i][r - 1] : 0) + 
+                        ((r < j) ? cost[r + 1][j] : 0) + 
+                        off_set_sum;
 
-            
-            for (int r = i; r < j; ++r) {
-                double tempCost = cost[i][r] + cost[r + 1][j] + w[i][j];
-                if (tempCost < cost[i][j]) {
-                    cost[i][j] = tempCost;
-                    root[i][j - 1] = r + 1;  
+                if (c < cost[i][j]) {
+                    cost[i][j] = c;
+                    root[i][j] = r;  
                 }
             }
         }
     }
 
+    return cost[0][n - 1];
+}
+
+// A utility function to get sum of array elements freq[i] to freq[j]
+int sum(int freq[], int i, int j) 
+{ 
+    int s = 0; 
+    for (int k = i; k <= j; k++)
+        s += freq[k]; 
+    return s; 
+}
+
+
+void UserInput(vector<int>& keys, vector<int>& freq) {
+    int n;
+    cout << "Enter the number of keys: ";
+    cin >> n;
     
-    std::cout << "Cost matrix:" << std::endl;
-    for (int i = 0; i <= n; ++i) {
-        for (int j = 0; j <= n; ++j) {
-            std::cout << cost[i][j] << "\t";
-        }
-        std::cout << std::endl;
+    keys.resize(n);
+    cout << "Enter the keys: ";
+    for (int i = 0; i < n; i++) {
+        cin >> keys[i];
     }
 
-    
-    std::cout << "\nRoot matrix:" << std::endl;
-    for (int i = 0; i <= n; ++i) {
-        for (int j = 0; j < n; ++j) {
-            std::cout << root[i][j] << "\t";
-        }
-        std::cout << std::endl;
+    freq.resize(n);
+    cout << "Enter the frequencies for each key: ";
+    for (int i = 0; i < n; i++) {
+        cin >> freq[i];
     }
 }
 
-int main() {
-    
-    std::vector<int> keys = {10, 20, 30};  
-    std::vector<double> p = {0.3, 0.2, 0.1}; 
-    std::vector<double> q = {0.1, 0.1, 0.1, 0.1}; 
 
-    optimalBST(keys, p, q);
+void displayOBST(vector<vector<int> >& root, const vector<int>& keys, int i, int j, string parent, bool isLeft) {
+    if (i > j) return;
+
+    int r = root[i][j];
+    if (parent == "ROOT") {
+        cout << "Root: " << keys[r] << endl;
+    } else {
+        cout << "Child of " << parent << ": " << keys[r] << " (" << (isLeft ? "Left" : "Right") << ")" << endl;
+    }
+
+    
+ displayOBST(root, keys, i, r - 1, intToString(keys[r]), true);
+    displayOBST(root, keys, r + 1, j, intToString(keys[r]), false);
+}
+
+
+int main() 
+{ 
+    vector<int> keys, freq;
+    vector<vector<int> > root; 
+    UserInput(keys, freq);  
+
+    int n = keys.size();
+    cout << "Cost of Optimal BST is " << optimalSearchTree(keys, freq, n, root) << endl;
+
+    
+    cout << "OBST Structure:" << endl;
+    displayOBST(root, keys, 0, n - 1, "ROOT", false);
 
     return 0;
-}
-
+}  
