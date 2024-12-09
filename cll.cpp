@@ -7,7 +7,122 @@ struct Node {
     Node(int val) : data(val), next(NULL) {}
 };
 
-// Function to insert a new node into the circular linked list
+// Function to insert a new node into the circular lin#include <iostream>
+using namespace std;
+
+
+struct Node {
+    int data;
+    Node* prev;
+    Node* next;
+
+    Node(int data) {
+        this->data = data;
+        this->prev = this->next = NULL;
+    }
+};
+
+
+struct CircularDoublyLinkedList {
+    Node* head;
+
+    CircularDoublyLinkedList() {
+        head = NULL;
+    }
+
+    
+    void append(int data) {
+        Node* newNode = new Node(data);
+        if (head == NULL) {
+            head = newNode;
+            newNode->next = newNode->prev = newNode;
+        } else {
+            Node* last = head->prev;
+            last->next = newNode;
+            newNode->prev = last;
+            newNode->next = head;
+            head->prev = newNode;
+        }
+    }
+
+    
+    void display() {
+        if (head == NULL) {
+            cout << "The list is empty." << endl;
+            return;
+        }
+        Node* temp = head;
+        do {
+            cout << temp->data << " <-> ";
+            temp = temp->next;
+        } while (temp != head);
+        
+    }
+
+    
+    void concatenate(CircularDoublyLinkedList& other) {
+        if (head == NULL || other.head == NULL) {
+            cout << "One or both lists are empty." << endl;
+            return;
+        }
+
+        
+        Node* tail1 = head->prev;
+        Node* tail2 = other.head->prev;
+
+        tail1->next = other.head;
+        other.head->prev = tail1;
+
+        head->prev = tail2;
+        tail2->next = head;
+
+        
+        other.head = NULL;
+    }
+};
+
+int main() {
+    CircularDoublyLinkedList list1, list2;
+
+    
+    int n1;
+    cout << "Enter the number of nodes for the first list: ";
+    cin >> n1;
+    for (int i = 0; i < n1; ++i) {
+        int data;
+        cout << "Enter data for node "<<i<<": ";
+        cin >> data;
+        list1.append(data);
+    }
+
+    
+    int n2;
+    cout << "Enter the number of nodes for the second list: ";
+    cin >> n2;
+    for (int i = 0; i < n2; ++i) {
+        int data;
+        cout << "Enter data for node: ";
+        cin >> data;
+        list2.append(data);
+    }
+
+    
+    cout << "\nFirst Circular Doubly Linked List:" << endl;
+    list1.display();
+
+    cout << "\nSecond Circular Doubly Linked List:" << endl;
+    list2.display();
+
+    
+    list1.concatenate(list2);
+
+    
+    cout << "\nConcatenated Circular Doubly Linked List:" << endl;
+    list1.display();
+
+    return 0;
+}
+ked list
 void insert(Node*& head, int val) {
     Node* newNode = new Node(val);
     if (!head) {
