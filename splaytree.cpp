@@ -1,190 +1,190 @@
-#include <iostream>
+#include <bits/stdc++.h>
 using namespace std;
 
-struct Node {
-    int key;
-    Node* left;
-    Node* right;
-};
+// An AVL tree node 
+class node 
+{ 
+    public:
+    int key; 
+    node *left, *right; 
+}; 
 
-class SplayTree {
-private:
-    Node* root;
+node* newNode(int key) 
+{ 
+    node* Node = new node();
+    Node->key = key; 
+    Node->left = Node->right = NULL; 
+    return (Node); 
+} 
 
-    Node* newNode(int key) {
-        Node* node = new Node();
-        node->key = key;
-        node->left = node->right = NULL;
-        return node;
-    }
+node *rightRotate(node *x) 
+{ 
+    node *y = x->left; 
+    x->left = y->right; 
+    y->right = x; 
+    return y; 
+} 
 
-    Node* rightRotate(Node* x) {
-        Node* y = x->left;
-        x->left = y->right;
-        y->right = x;
-        return y;
-    }
+node *leftRotate(node *x) 
+{ 
+    node *y = x->right; 
+    x->right = y->left; 
+    y->left = x; 
+    return y; 
+} 
 
-    Node* leftRotate(Node* x) {
-        Node* y = x->right;
-        x->right = y->left;
-        y->left = x;
-        return y;
-    }
+node *splay(node *root, int key) 
+{ 
+    if (root == NULL || root->key == key) 
+        return root; 
 
-    Node* splay(Node* root, int key) {
-        if (!root || root->key == key)
-            return root;
+    if (root->key > key) 
+    { 
+        if (root->left == NULL) return root; 
+        if (root->left->key > key) 
+        { 
+            root->left->left = splay(root->left->left, key); 
+            root = rightRotate(root); 
+        } 
+        else if (root->left->key < key) 
+        { 
+            root->left->right = splay(root->left->right, key); 
+            if (root->left->right != NULL) 
+                root->left = leftRotate(root->left); 
+        } 
+        return (root->left == NULL)? root: rightRotate(root); 
+    } 
+    else 
+    { 
+        if (root->right == NULL) return root; 
+        if (root->right->key > key) 
+        { 
+            root->right->left = splay(root->right->left, key); 
+            if (root->right->left != NULL) 
+                root->right = rightRotate(root->right); 
+        } 
+        else if (root->right->key < key) 
+        { 
+            root->right->right = splay(root->right->right, key); 
+            root = leftRotate(root); 
+        } 
+        return (root->right == NULL)? root: leftRotate(root); 
+    } 
+} 
 
-        if (key < root->key) {
-            if (!root->left) return root;
+node *insert(node *root, int k) 
+{ 
+    if (root == NULL) return newNode(k); 
+    root = splay(root, k); 
+    if (root->key == k) return root; 
 
-            if (key < root->left->key) {
-                root->left->left = splay(root->left->left, key);
-                root = rightRotate(root);
-            } else if (key > root->left->key) {
-                root->left->right = splay(root->left->right, key);
-                if (root->left->right)
-                    root->left = leftRotate(root->left);
-            }
-            return root->left ? rightRotate(root) : root;
-        } else {
-            if (!root->right) return root;
+    node *newnode = newNode(k); 
+    if (root->key > k) 
+    { 
+        newnode->right = root; 
+        newnode->left = root->left; 
+        root->left = NULL; 
+    } 
+    else
+    { 
+        newnode->left = root; 
+        newnode->right = root->right; 
+        root->right = NULL; 
+    } 
+    return newnode; 
+} 
 
-            if (key > root->right->key) {
-                root->right->right = splay(root->right->right, key);
-                root = leftRotate(root);
-            } else if (key < root->right->key) {
-                root->right->left = splay(root->right->left, key);
-                if (root->right->left)
-                    root->right = rightRotate(root->right);
-            }
-            return root->right ? leftRotate(root) : root;
-        }
-    }
+node* deleteNode(node* root, int key) 
+{ 
+    if (root == NULL) return NULL; 
+    root = splay(root, key); 
+    if (root->key != key) return root; 
 
-    Node* deleteNode(Node* root, int key) {
-        if (!root) return NULL;
+    if (root->left == NULL) 
+    { 
+        node* temp = root->right; 
+        delete root; 
+        return temp; 
+    } 
+    else 
+    { 
+        node* temp = splay(root->left, key); 
+        temp->right = root->right; 
+        delete root; 
+        return temp; 
+    } 
+} 
 
-        root = splay(root, key);
+void preOrder(node *root) 
+{ 
+    if (root != NULL) 
+    { 
+        cout << root->key << " "; 
+        preOrder(root->left); 
+        preOrder(root->right); 
+    } 
+} 
 
-        if (root->key != key)
-            return root;
+node* search(node* root, int key) 
+{
+    root = splay(root, key);
+    if (root != NULL && root->key == key)
+        cout << "Key found: " << key << endl;
+    else
+        cout << "Key not found." << endl;
+    return root;
+}
 
-        if (!root->left) {
-            Node* temp = root;
-            root = root->right;
-            delete temp;
-        } else {
-            Node* temp = root;
-            root = splay(root->left, key);
-            root->right = temp->right;
-            delete temp;
-        }
-        return root;
-    }
+int main() 
+{ 
+    node* root = NULL; 
+    int choice, key; 
 
-    void preorderTraversal(Node* root) {
-        if (root) {
-            cout << root->key << " ";
-            preorderTraversal(root->left);
-            preorderTraversal(root->right);
-        }
-    }
-
-public:
-    SplayTree() : root(NULL) {}
-
-    void insert(int key) {
-        if (!root) {
-            root = newNode(key);
-            cout << "Key " << key << " inserted as the root.\n";
-            return;
-        }
-        root = splay(root, key);
-        if (root->key == key) {
-            cout << "Key " << key << " already exists. No insertion.\n";
-            return;
-        }
-
-        Node* newNodePtr = newNode(key);
-
-        if (key < root->key) {
-            newNodePtr->right = root;
-            newNodePtr->left = root->left;
-            root->left = NULL;
-        } else {
-            newNodePtr->left = root;
-            newNodePtr->right = root->right;
-            root->right = NULL;
-        }
-        root = newNodePtr;
-        cout << "Key " << key << " inserted successfully.\n";
-    }
-
-    void search(int key) {
-        root = splay(root, key);
-        if (root && root->key == key)
-            cout << "Key " << key << " found in the tree.\n";
-        else
-            cout << "Key " << key << " not found in the tree.\n";
-    }
-
-    void remove(int key) {
-        root = deleteNode(root, key);
-        cout << "Key " << key << " removed (if it existed).\n";
-    }
-
-    void display() {
-        if (!root) {
-            cout << "The tree is empty.\n";
-            return;
-        }
-        cout << "Preorder traversal: ";
-        preorderTraversal(root);
-        cout << endl;
-    }
-};
-
-int main() {
-    SplayTree tree;
-    int choice, key;
-
-    while (true) {
-        cout << "\nMenu:\n";
+    while (true) 
+    { 
+        cout << "\nSplay Tree Menu:\n";
         cout << "1. Insert\n";
         cout << "2. Search\n";
         cout << "3. Delete\n";
-        cout << "4. Display (Preorder Traversal)\n";
+        cout << "4. Display Preorder\n";
         cout << "5. Exit\n";
         cout << "Enter your choice: ";
         cin >> choice;
 
-        switch (choice) {
-        case 1:
-            cout << "Enter the key to insert: ";
-            cin >> key;
-            tree.insert(key);
-            break;
-        case 2:
-            cout << "Enter the key to search: ";
-            cin >> key;
-            tree.search(key);
-            break;
-        case 3:
-            cout << "Enter the key to delete: ";
-            cin >> key;
-            tree.remove(key);
-            break;
-        case 4:
-            tree.display();
-            break;
-        case 5:
-            cout << "Exiting...\n";
-            return 0;
-        default:
-            cout << "Invalid choice. Please try again.\n";
-        }
-    }
-}
+        switch (choice) 
+        { 
+            case 1: 
+                cout << "Enter the key to insert: "; 
+                cin >> key; 
+                root = insert(root, key); 
+                cout << "Key inserted.\n"; 
+                break;
 
+            case 2: 
+                cout << "Enter the key to search: "; 
+                cin >> key; 
+                root = search(root, key); 
+                break;
+
+            case 3: 
+                cout << "Enter the key to delete: "; 
+                cin >> key; 
+                root = deleteNode(root, key); 
+                cout << "Key deleted (if it existed).\n"; 
+                break;
+
+            case 4: 
+                cout << "Preorder traversal: "; 
+                preOrder(root); 
+                cout << endl; 
+                break;
+
+            case 5: 
+                cout << "Exiting program.\n"; 
+                return 0;
+
+            default: 
+                cout << "Invalid choice. Try again.\n"; 
+        } 
+    } 
+} 
